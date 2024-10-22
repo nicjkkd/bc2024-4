@@ -34,10 +34,25 @@ const server = http.createServer(async (req, res) => {
   try {
     switch (req.method) {
       case "GET":
-        const cachedPicture = await fs.promises.readFile(image);
-        res.writeHead(200, { "Content-Type": "image/jpeg" });
-        res.end(cachedPicture);
-        break;
+        try {
+          const cachedPicture = await fs.promises.readFile(image);
+          res.writeHead(200, { "Content-Type": "image/jpeg" });
+          res.end(cachedPicture);
+          break;
+        } catch (err) {
+          try {
+            const fetchedPicture = await superagent.get(path);
+            await fs.promises.writeFile(image, fetchedPicture.body);
+            const cachedPicture = await fs.promises.readFile(image);
+            res.writeHead(200, { "Content-Type": "image/jpeg" });
+            res.end(cachedPicture);
+            break;
+          } catch {
+            res.writeHead(404);
+            res.end("Error with processing the request");
+            break;
+          }
+        }
 
       case "PUT":
         const fetchedPicture = await superagent.get(path);
