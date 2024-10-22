@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon main.js -- -h 127.0.0.1 -p 3000 -c ./cache",
-    "start": "node main.js"
+    "start1": "nodemon main.js",
+    "start2": "nodemon main.js -- -h 127.0.0.1",
+    "start3": "nodemon main.js -- -h 127.0.0.1 -p 3000"
   },
   "author": "",
   "license": "ISC",
