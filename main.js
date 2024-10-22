@@ -27,9 +27,39 @@ if (!cache) {
   return;
 }
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end(`Caching to: ${cache}`);
+const server = http.createServer(async (req, res) => {
+  const path = `https://http.cat/${req.url}.jpg`;
+  const image = `${cache}${req.url}.jpg`;
+
+  try {
+    switch (req.method) {
+      case "GET":
+        const cachedPicture = await fs.promises.readFile(image);
+        res.writeHead(200, { "Content-Type": "image/jpeg" });
+        res.end(cachedPicture);
+        break;
+
+      case "PUT":
+        const fetchedPicture = await superagent.get(path);
+        await fs.promises.writeFile(image, fetchedPicture.body);
+        res.writeHead(201);
+        res.end();
+        break;
+
+      case "DELETE":
+        await fs.promises.rm(image, { force: true });
+        res.writeHead(200);
+        res.end();
+        break;
+
+      default:
+        res.writeHead(405);
+        res.end();
+    }
+  } catch (error) {
+    res.writeHead(404);
+    res.end("Error with processing the request");
+  }
 });
 
 server.listen(port, host, () => {
