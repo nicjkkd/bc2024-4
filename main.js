@@ -38,7 +38,6 @@ const server = http.createServer(async (req, res) => {
           const cachedPicture = await fs.promises.readFile(image);
           res.writeHead(200, { "Content-Type": "image/jpeg" });
           res.end(cachedPicture);
-          break;
         } catch (err) {
           try {
             const fetchedPicture = await superagent.get(path);
@@ -46,19 +45,39 @@ const server = http.createServer(async (req, res) => {
             const cachedPicture = await fs.promises.readFile(image);
             res.writeHead(200, { "Content-Type": "image/jpeg" });
             res.end(cachedPicture);
-            break;
           } catch {
             res.writeHead(404);
-            res.end("Error with processing the request");
-            break;
+            res.end("Not Found");
           }
         }
+        break;
 
       case "PUT":
-        const fetchedPicture = await superagent.get(path);
-        await fs.promises.writeFile(image, fetchedPicture.body);
-        res.writeHead(201);
-        res.end();
+        console.log(`Processing PUT request for status code: ${req.url}`);
+
+        let body = [];
+        req.on("data", (chunk) => body.push(chunk));
+        req.on("end", async () => {
+          body = Buffer.concat(body);
+
+          if (!body.length) {
+            res.writeHead(400, { "Content-Type": "text/plain" });
+            res.end("No image in request body");
+            return;
+          }
+
+          console.log(`Saving image to: ${image}`);
+
+          try {
+            await fs.promises.writeFile(image, body);
+            res.writeHead(201, { "Content-Type": "text/plain" });
+            res.end("Image saved");
+          } catch (err) {
+            console.log(`Error saving image: ${err}`);
+            res.writeHead(500, { "Content-Type": "text/plain" });
+            res.end("Internal Server Error");
+          }
+        });
         break;
 
       case "DELETE":
