@@ -53,21 +53,15 @@ const server = http.createServer(async (req, res) => {
         break;
 
       case "PUT":
-        console.log(`Processing PUT request for status code: ${req.url}`);
-
         let body = [];
         req.on("data", (chunk) => body.push(chunk));
         req.on("end", async () => {
           body = Buffer.concat(body);
-
           if (!body.length) {
             res.writeHead(400, { "Content-Type": "text/plain" });
             res.end("No image in request body");
             return;
           }
-
-          console.log(`Saving image to: ${image}`);
-
           try {
             await fs.promises.writeFile(image, body);
             res.writeHead(201, { "Content-Type": "text/plain" });
